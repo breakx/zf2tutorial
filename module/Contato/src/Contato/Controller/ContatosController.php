@@ -124,7 +124,16 @@ class ContatosController extends AbstractActionController
             // 1 - solicitar serviço para pegar o model responsável pelo find
             // 2 - solicitar form com dados desse contato encontrado
             // formulário com dados preenchidos
-            $contato = $this->getContatoTable()->find($id);
+
+            // lógica cache objeto contatos
+            $nome_cache_contato_id = "nome_cache_contato_{$id}";
+            if (!$this->cache()->hasItem($nome_cache_contato_id)) {
+                $contato = $this->getContatoTable()->find($id);
+
+                $this->cache()->setItem($nome_cache_contato_id, $contato);
+            } else {
+                $contato = $this->cache()->getItem($nome_cache_contato_id);
+            }
         } catch (\Exception $exc) {
             // adicionar mensagem
             $this->flashMessenger()->addErrorMessage($exc->getMessage());
@@ -134,7 +143,10 @@ class ContatosController extends AbstractActionController
         }
 
         // dados eviados para detalhes.phtml
-        return ['contato' => $contato];
+        return (new ViewModel())
+            ->setTerminal($this->getRequest()->isXmlHttpRequest())
+            ->setVariable('contato', $contato)
+            ;
     }
 
     // GET /contatos/editar/id
@@ -202,6 +214,11 @@ class ContatosController extends AbstractActionController
                 $this->flashMessenger()
                     ->addSuccessMessage("Contato editado com sucesso");
 
+                $nome_cache_contato_id = "nome_cache_contato_{$modelContato->id}";
+                if ($this->cache()->hasItem($nome_cache_contato_id)) {
+                    $this->cache()->removeItem($nome_cache_contato_id);
+                }
+
                 // redirecionar para action detalhes
                 return $this->redirect()->toRoute('contatos', array("action" => "detalhes", "id" => $modelContato->id));
             } else { // em caso da validação não seguir o que foi definido
@@ -252,5 +269,18 @@ class ContatosController extends AbstractActionController
 
         // return vairavel de classe com service ModelContato
         return $this->contatoTable;
+    }
+
+    // GET /contatos/search?query=[nome]
+    public function searchAction()
+    {
+        $nome = $this->params()->fromQuery('query', null);
+        if (isset($nome)) {
+            $result = $this->getContatoTable()->search($nome);
+        } else  {
+            $result = [];
+        }
+
+        return new \Zend\View\Model\JsonModel($result);
     }
 }

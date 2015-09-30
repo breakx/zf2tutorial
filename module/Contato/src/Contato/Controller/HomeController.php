@@ -32,6 +32,21 @@ class HomeController extends AbstractActionController
         };
 
         /**
+         * Uso de cache
+         */
+        if (!$this->cache()->hasItem('nome')) {
+            $myVarDump(
+                "Registro de Cache Agora",
+                $this->cache()->setItem('nome', 'igor')
+            );
+        } else {
+            $myVarDump(
+                "Cache Existente",
+                $this->cache()->getItem('nome')
+            );
+        }
+
+        /**
          * conexão com banco
          */
         /*$adapter = new Adaptador(array( // alias use Zend\Db\Adapter\Adapter as Adaptador
