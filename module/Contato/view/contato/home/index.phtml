@@ -57,12 +57,20 @@
         </tbody>
     </table>
 
-    <ul class="pagination pull-right">
-        <li><a href="#">Anterior</a></li>
-        <li class="active"><a href="#">1</a></li>
-        <li><a href="#">2</a></li>
-        <li><a href="#">3</a></li>
-        <li><a href="#">4</a></li>
-        <li><a href="#">Próximo</a></li>
-    </ul>
+    <?php
+    // controle de paginação
+    echo $this->paginationControl(
+    // objeto contentdo os contatos
+        $this->contatos,
+
+        // tipo de style da paginação
+        'Sliding',
+
+        // partial que vai conter o html da paginação
+        [/*path*/ 'partial/paginator.phtml', /*modulo*/ 'Contato'],
+
+        // link rotas da paginação
+        ['route' => 'contatos']
+    );
+    ?>
 </div>
